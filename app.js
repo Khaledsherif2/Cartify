@@ -29,6 +29,7 @@ const allowedOrigins = [
   process.env.LOCAL_URL_2,
   process.env.SERVER_URL,
 ];
+
 app.use(
   cors({
     origin: allowedOrigins,

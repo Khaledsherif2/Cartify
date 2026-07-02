@@ -31,6 +31,6 @@ A modern, scalable E-commerce REST API built with **Node.js**, **Express.js**, a
 - Validation
 - Error Handling
 
-## 🔗 Live API DOCS Preview
+## 🔗 API DOCS Preview
 
 🚀 [View Live Project](https://cartify-v1.runasp.net/api-docs/)

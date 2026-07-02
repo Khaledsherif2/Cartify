@@ -16,6 +16,7 @@ servers:
       port:
         default: '8080'
   - url: https://cartify-v1.runasp.net/api/v1
+    description: Live server
 #--------------------------------------------------------------------------
 tags:
   - name: Users
