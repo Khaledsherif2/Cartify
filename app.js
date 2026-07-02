@@ -22,8 +22,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 1) GLOBAL MIDDLEWARES
 // Security Headers
 app.use(helmet());
+
 // CORS
-app.use(cors());
+const allowedOrigins = [
+  process.env.LOCAL_URL_1,
+  process.env.LOCAL_URL_2,
+  process.env.SERVER_URL,
+];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
 
 // Rate Limiting
 const limiter = rateLimit({
