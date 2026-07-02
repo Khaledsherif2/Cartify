@@ -1,0 +1,74 @@
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+
+  p Thank you for your order! 🎉
+  p We've received your order and we're currently preparing it for shipment.
+
+  p
+    strong Order ID:
+    |  #{order._id}
+
+  p
+    strong Order Date:
+    |  #{new Date(order.createdAt).toLocaleDateString()}
+
+  if order.shippingAddress
+    h3 Shipping Address
+
+    p
+      | #{order.shippingAddress.street}
+      br
+      | #{order.shippingAddress.city}
+      br
+      | #{order.shippingAddress.postalCode || ''}
+
+  if order.paymentMethodType
+    p
+      strong Payment Method:
+      |  #{order.paymentMethod}
+
+  h3 Order Summary
+
+  table(role='presentation', border='0', cellpadding='0', cellspacing='0', width='100%')
+    tbody
+      tr
+        td
+          strong Item
+        td.align-right
+          strong Qty
+        td.align-right
+          strong Price
+
+      each item in order.orderItems
+        tr
+          td #{item.title}
+          td.align-right #{item.quantity}
+          td.align-right #{item.price.toFixed(2)} EGP
+
+      tr
+        td(colspan='2')
+          strong Total Paid
+        td.align-right
+          strong #{order.totalPrice.toFixed(2)} EGP
+
+  hr
+
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td.align-left
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=url, target='_blank') Track Your Order
+
+  p
+    | If you have any questions regarding your order, simply reply to this email and we'll be happy to help.
+
+  p
+    | Thanks,
+    br
+    strong Cartify Team

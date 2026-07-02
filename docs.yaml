@@ -1,0 +1,1921 @@
+openapi: '3.0.3'
+info:
+  title: Cartify
+  description: |
+    ## About us
+    **Cartify** is a personal e-commerce backend project built with Node.js, Express.js, and MongoDB, focusing on scalability, security, and real-world `API development`. Any website or application can use its _APIs_ to manage products, orders, and e-commerce operations.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+#--------------------------------------------------------------------------
+servers:
+  - url: http://127.0.0.1:{port}/api/v1
+    description: Local server
+    variables:
+      port:
+        default: '8080'
+#--------------------------------------------------------------------------
+tags:
+  - name: Users
+    description: Users related operations
+  - name: Products
+    description: Products related operations
+  - name: Categories
+    description: Categories related operations
+  - name: Wishlist
+    description: Wishlist related operations
+  - name: Cart
+    description: Cart related operations
+  - name: Coupons
+    description: Coupon related operations
+  - name: Orders
+    description: Orders related operations
+  - name: Reviews
+    description: Reviews related operations
+  - name: Dashboard
+    description: Dashboard related operations
+  - name: Paymob
+    description: Paymob related operations
+#--------------------------------------------------------------------------
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+#--------------------------------------------------------------------------
+paths:
+  /auth/signup:
+    post:
+      tags: [Users]
+      summary: Join our Cartify Family
+      description: Creates a new user profile inside the system.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/User/properties/name'
+                email:
+                  $ref: '#/components/schemas/User/properties/email'
+                password:
+                  $ref: '#/components/schemas/User/properties/password'
+                passwordConfirm:
+                  $ref: '#/components/schemas/User/properties/passwordConfirm'
+              required: [name, email, password, passwordConfirm]
+
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                oneUserExample:
+                  $ref: '#/components/examples/OneUserExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/login:
+    post:
+      tags: [Users]
+      summary: Authenticate user credentials
+      description: Verifies a user's email and password to start a secure session.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  $ref: '#/components/schemas/User/properties/email'
+                password:
+                  $ref: '#/components/schemas/User/properties/password'
+              required: [email, password]
+      responses:
+        '200':
+          description: User logged in successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                loginExample:
+                  $ref: '#/components/examples/loginExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/forgotPassword:
+    post:
+      tags: [Users]
+      summary: Request a password reset token
+      description: Initiates the password recovery process for users who forgot their credentials.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  $ref: '#/components/schemas/User/properties/email'
+              required: [email]
+      responses:
+        '200':
+          description: description:Reset token generated and email sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Token sent to email!
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/resetPassword/{token}:
+    post:
+      tags: [Users]
+      summary: Reset password using token
+      description: Validates the recovery token passed via the URL path and updates the user's password.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The unhashed reset token received via the user's email link.
+          schema:
+            type: string
+            example: '3b08e5c95cb28fc3b9cb9d88a7822496'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  $ref: '#/components/schemas/User/properties/password'
+                passwordConfirm:
+                  $ref: '#/components/schemas/User/properties/passwordConfirm'
+              required: [password, passwordConfirm]
+      responses:
+        '200':
+          description: Password updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                loginExample:
+                  $ref: '#/components/examples/loginExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/updatePassword:
+    post:
+      tags: [Users]
+      summary: Update current user password.
+      description: Allows an authenticated user to change their account password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passwordCurrent:
+                  type: string
+                  format: password
+                  minLength: 8
+                password:
+                  $ref: '#/components/schemas/User/properties/password'
+                passwordConfirm:
+                  $ref: '#/components/schemas/User/properties/passwordConfirm'
+              required: [passwordCurrent, password, passwordConfirm]
+      responses:
+        '200':
+          description: Password updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                loginExample:
+                  $ref: '#/components/examples/loginExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/updateProfile:
+    patch:
+      tags: [Users]
+      summary: Update current user profile info
+      description: Allows the currently logged-in user to update their basic profile data (e.g., name, email, photo).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/User/properties/name'
+                email:
+                  $ref: '#/components/schemas/User/properties/email'
+                photo:
+                  type: string
+                  format: binary
+                  description: Upload the main cover image file
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/User/properties/name'
+                email:
+                  $ref: '#/components/schemas/User/properties/email'
+      responses:
+        '200':
+          description: Profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                OneUser:
+                  $ref: '#/components/examples/OneUserExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/deleteProfile:
+    delete:
+      tags: [Users]
+      summary: Deactivate current user account
+      description: Allows the currently logged-in user to deactivate their own account.
+      responses:
+        '204':
+          description: Account successfully deactivated.
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/users:
+    get:
+      tags:
+        - Users
+      summary: List all users (Admin Only)
+      description: Return the list of all available users
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+            example: 6a3d41c0e3435e7e8e68c855
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  result: { type: integer }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+              examples:
+                AllUsers:
+                  $ref: '#/components/examples/AllUsersExample'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /auth/users/{id}:
+    get:
+      tags: [Users]
+      summary: List user details (Admin Only)
+      description: Return user details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 6a3d41c0e3435e7e8e68c855
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  data:
+                    $ref: '#/components/schemas/User'
+              examples:
+                OneUser:
+                  $ref: '#/components/examples/OneUserExample'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /products:
+    get:
+      tags:
+        - Products
+      summary: List all products
+      description: Return the list of products from Cartify
+      security: []
+      parameters:
+        - name: productId
+          in: query
+          schema:
+            type: string
+            example: 6a3d41c0e3435e7e8e68c855
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                AllproductsExample:
+                  $ref: '#/components/examples/AllproductsExample'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Products]
+      summary: add new product (Admin Only)
+      description: Post product details to Cartify for demand and supply
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Product'
+                - type: object
+                  properties:
+                    imageCover:
+                      type: string
+                      format: binary
+                      description: Upload the main cover image file
+                    images:
+                      type: array
+                      items:
+                        type: string
+                        format: binary
+                        description: Upload multiple gallery image files
+                  required:
+                    [title, description, price, category, imageCover, stock]
+
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                oneProductExample:
+                  $ref: '#/components/examples/oneProductExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The unique ID of the product
+        schema:
+          type: string
+          example: 6a3d41c0e3435e7e8e68c855
+    get:
+      tags:
+        - Products
+      summary: List product details
+      description: Return product details
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  data:
+                    $ref: '#/components/schemas/Product'
+              examples:
+                oneProductExample:
+                  $ref: '#/components/examples/oneProductExample'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Products]
+      summary: Update product details (Admin Only)
+      description: Update product details to Cartify for demand and supply
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Product'
+                - type: object
+                  properties:
+                    imageCover:
+                      type: string
+                      format: binary
+                      description: Upload the main cover image file
+                    images:
+                      type: array
+                      items:
+                        type: string
+                        format: binary
+                        description: Upload multiple gallery image files
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  $ref: '#/components/schemas/Product/properties/title'
+                description:
+                  $ref: '#/components/schemas/Product/properties/description'
+                price:
+                  $ref: '#/components/schemas/Product/properties/price'
+                category:
+                  $ref: '#/components/schemas/Product/properties/category'
+                stock:
+                  $ref: '#/components/schemas/Product/properties/stock'
+      responses:
+        '200':
+          description: Product details updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                OneUser:
+                  $ref: '#/components/examples/oneProductExample'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Products]
+      summary: Delete product (Admin Only)
+      description: Delete product details from Cartify
+      responses:
+        '204':
+          description: Product details deleted successfully
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      description: Returns a complete list of all product categories available on the platform. Protected by authentication middleware.
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoryListResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Categories]
+      summary: Add a new category (Admin Only)
+      description: Processes form data inputs along with a category banner image file to write a new categorization category to disk.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Category'
+                - type: object
+                  properties:
+                    image:
+                      type: string
+                      format: binary
+                      description: Optional profile display icon file upload (PNG/JPG)
+      responses:
+        '201':
+          $ref: '#/components/responses/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /categories/{id}:
+    parameters:
+      - $ref: '#/components/parameters/categoryIdPathParam'
+    get:
+      tags: [Categories]
+      summary: Get a specific category (Admin Only)
+      description: Fetches metadata for an isolated category item by scanning its database key identifier.
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoryResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Categories]
+      summary: Update a category (Admin Only)
+      description: Modifies existing category configurations. All payload parameters remain partial and completely optional.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Category'
+                - type: object
+                  properties:
+                    image:
+                      type: string
+                      format: binary
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Categories]
+      summary: Delete a category (Admin Only)
+      description: Permanently clears a category node entirely out of database memory indices.
+      responses:
+        '204':
+          description: Category deleted successfully (No return body)
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /wishlist:
+    get:
+      tags: [Wishlist]
+      summary: Get current user's wishlist
+      description: Retrieves the list of products saved in the logged-in user's wishlist.
+      responses:
+        '200':
+          description: Wishlist retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  result:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: 6a2e73d56cff973b1bee2362
+                        title:
+                          type: string
+                          example: iPhone 13 Pro
+                        description:
+                          type: string
+                          example: The iPhone 13 Pro is a cutting-edge smartphone with a powerful camera system
+                        price:
+                          type: number
+                          example: 54449.99
+                        imageCover:
+                          type: string
+                          example: products-6a2e73d56cff973b1bee2362-1782233992623-cover.jpeg
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /wishlist/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/productIdPathParam'
+    post:
+      tags: [Wishlist]
+      summary: Add a product to wishlist
+      description: Adds a product ID to the user's wishlist array.
+      responses:
+        '200':
+          description: Product added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: string
+                      example: 6a2e73d56cff973b1bee2362
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Wishlist]
+      summary: Remove a product from wishlist
+      description: Removes a specific product ID from the user's wishlist array.
+      responses:
+        '204':
+          description: Product removed successfully
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Retrieve the logged-in user's cart
+      description: Fetches the active shopping cart and populates product details for the current authenticated session.
+      responses:
+        '200':
+          description: Cart data fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Cart]
+      summary: Add an item or update its quantity in the cart
+      description: If the product does not exist in the cart, it inserts it. If it already exists, it updates or increments the quantity.
+      requestBody:
+        required: true
+        content:
+          application/json: # <--- Cart mutations use standard JSON, not multipart/form-data
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                  example: '6a415f7b2ad8438f1374b556'
+                quantity:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Number of items to place in the cart
+                  example: 2
+              required: [productId]
+      responses:
+        '200':
+          description: Product successfully added/updated in the cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /cart/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/productIdPathParam'
+    patch:
+      tags: [Cart]
+      summary: Update the quantity of a specific item in the cart
+      description: Directly overwrites the quantity of an existing item in the cart.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: The new absolute quantity for this product line item
+                  example: 3
+              required: [quantity]
+      responses:
+        '200':
+          description: Item quantity updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Cart'
+                      - type: object
+                        properties:
+                          cartItems:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                product:
+                                  {
+                                    $ref: '#/components/schemas/Product/properties/_id',
+                                  }
+                                quantity:
+                                  type: integer
+                                  minimum: 1
+                                  example: 3
+                                price:
+                                  type: number
+                                  description: Total price for this line item (product price * quantity)
+                                  example: 1200
+                          subTotal: { type: number, example: 3800 }
+                          totalPrice: { type: number, example: 3780 }
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Cart]
+      summary: Remove a specific line item from the cart
+      description: Completely removes the product item line from the user's cart array.
+      responses:
+        '200':
+          description: Item removed from cart successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Cart'
+                      - type: object
+                        properties:
+                          cartItems: { type: array, example: [] }
+                          subTotal: { type: number, example: 0 }
+                          totalPrice: { type: number, example: 0 }
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /cart/apply-coupon:
+    patch:
+      tags: [Cart]
+      summary: Apply a discount coupon code to the cart
+      description: Validates a coupon code string and applies the corresponding percentage or fixed discount to the cart total price.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                coupon:
+                  type: string
+                  description: The case-sensitive coupon name or promotional code
+                  example: 'SUMMER20'
+              required: [coupon]
+      responses:
+        '200':
+          description: Coupon applied successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /coupons:
+    get:
+      tags: [Coupons]
+      summary: Get all coupons (Admin Only)
+      description: Returns a complete list of active and inactive discount coupons.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 2 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Coupon'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Coupons]
+      summary: Add a new coupon (Admin Only)
+      description: Creates a unique discount coupon code in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+      responses:
+        '201':
+          description: Coupon created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Coupon'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /coupons/{couponId}:
+    parameters:
+      - $ref: '#/components/parameters/couponIdPathParam'
+    patch:
+      tags: [Coupons]
+      summary: Update a coupon (Admin Only)
+      description: Update any combination of name, expiry, or discount values. No specific fields are required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/Coupon/properties/name'
+                discount:
+                  $ref: '#/components/schemas/Coupon/properties/discount'
+                type:
+                  $ref: '#/components/schemas/Coupon/properties/type'
+                expireAt:
+                  $ref: '#/components/schemas/Coupon/properties/expireAt'
+      responses:
+        '200':
+          description: Coupon updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Coupon'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Coupons]
+      summary: Delete a coupon (Admin Only)
+      description: Permanently purges a coupon from the database using its unique ID.
+      responses:
+        '204':
+          description: Coupon deleted successfully (No content returned)
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Get all orders (Admin Only)
+      description: Returns a global history of all orders across every user profile in the database.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 12 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /orders/checkout:
+    post:
+      tags: [Orders]
+      summary: Checkout (Create order from active cart)
+      description: Converts items inside the authenticated user's current shopping cart into a permanent order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shippingAddress:
+                  type: object
+                  properties:
+                    city: { type: string, example: 'Cairo' }
+                    street: { type: string, example: '123 Main St, Apt 4B' }
+                    phone: { type: string, example: '+201234567890' }
+                  required: [street, city, phone]
+                paymentMethod:
+                  type: string
+                  enum: [cash on delivery, paymob]
+                  example: cash on delivery
+              required: [shippingAddress, paymentMethod]
+      responses:
+        '201':
+          description: Order placed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /orders/my-orders:
+    get:
+      tags: [Orders]
+      summary: Get my orders
+      description: Returns an array list tracking all historical orders placed strictly by the logged-in user session.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 3 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /orders/{orderId}:
+    parameters:
+      - $ref: '#/components/parameters/orderIdPathParam'
+    patch:
+      tags:
+        - Orders
+      summary: Update order status (Admin Only)
+      description: Allows managers or admins to step-progress the order status tracking flag.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { $ref: '#/components/schemas/Order/properties/status' }
+                isPaid: { type: boolean, example: false }
+                isDelivered: { type: boolean, example: false }
+      responses:
+        '200':
+          description: Order status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Orders]
+      summary: Cancel an order
+      description: Allows a user or admin to cancel an unfulfilled order, altering its baseline state to cancelled.
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  message:
+                    {
+                      type: string,
+                      example: 'Your order has been cancelled successfully.',
+                    }
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /reviews:
+    get:
+      tags: [Reviews]
+      summary: Get all reviews (admin only)
+      description: Returns a complete list of all product reviews submitted across the platform.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 25 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Reviews]
+      summary: Add a new review (only the user who purchased the product)
+      description: Creates a new star rating and text review for a specific product item.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /reviews/{reviewId}:
+    parameters:
+      - $ref: '#/components/parameters/reviewIdPathParam'
+    get:
+      tags: [Reviews]
+      summary: Get a specific review (Admin Only)
+      description: Fetches a single detailed review document using its unique ID identifier.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Reviews]
+      summary: Update a review
+      description: Allows a user to edit their text comments or modify their star score rating. No fields are required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Reviews]
+      summary: Delete a review
+      description: Permanently removes a review document from the database collection.
+      responses:
+        '204':
+          description: Review deleted successfully (No content returned)
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /dashboard/overview:
+    get:
+      tags: [Dashboard]
+      summary: Get platform data overview (Admin Only)
+      description: Returns core aggregation counts covering total user demographics, inventory metrics, and total monetization breakdown.
+      responses:
+        '200':
+          $ref: '#/components/responses/DashboardOverviewResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/sales-by-month:
+    get:
+      tags: [Dashboard]
+      summary: Get operational revenue timelines by month (Admin Only)
+      description: Aggregates historical completed payment distributions categorized by calendar month.
+      responses:
+        '200':
+          $ref: '#/components/responses/MonthlySalesResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/top-selling-products:
+    get:
+      tags: [Dashboard]
+      summary: Get best-selling inventory line items (Admin Only)
+      description: Returns products sorted by total volume sold.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 5 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/top-rated-products:
+    get:
+      tags: [Dashboard]
+      summary: Get highest-reviewed products (Admin Only)
+      description: Lists the highest quality products based on platform consumer rating averages.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 5 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/recent-orders:
+    get:
+      tags: [Dashboard]
+      summary: Get latest order timeline logs (Admin Only)
+      description: Pulls the newest incoming customer requests for system fulfillment tracking queues.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  results: { type: integer, example: 10 }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/orders-status:
+    get:
+      tags: [Dashboard]
+      summary: Get processing status proportions (Admin Only)
+      description: Percentage allocation overview for tracking order completion rates.
+      responses:
+        '200':
+          $ref: '#/components/responses/OrderStatusResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/average-order-value:
+    get:
+      tags: [Dashboard]
+      summary: Get standard transaction value metrics (Admin Only)
+      description: Computes average transaction sizes across historical operations to evaluate baseline customer cart values.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    type: object
+                    properties:
+                      averageOrderValue: { type: number, example: 115.75 }
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  #--------------------------------------------------------------------------
+  /paymob/retry-payment/{orderId}:
+    post:
+      tags: [Paymob]
+      summary: Retry a failed or pending order payment via Paymob
+      description: Generates a fresh Paymob checkout URL and client secret to attempt payment completion for an unpaid order.
+      parameters:
+        - $ref: '#/components/parameters/orderIdPathParam'
+      responses:
+        '200':
+          description: Success - Paymob checkout session generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      checkoutUrl:
+                        type: string
+                        format: uri
+                        description: The hosted Paymob checkout iframe/page redirect destination link.
+                        example: 'https://paymob.com'
+                      clientSecret:
+                        type: string
+                        description: The direct client token string generated from the Paymob order transaction intent.
+                        example: 'cs_test_123457'
+        '400':
+          $ref: '#/components/responses/badRequestError'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '404':
+          $ref: '#/components/responses/notFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+#--------------------------------------------------------------------------
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          readOnly: true
+        name: { type: string }
+        email:
+          type: string
+          format: email
+        photo: { type: string }
+        role:
+          type: string
+          enum: ['user', 'admin']
+          readOnly: true
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+        passwordConfirm:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+          description: Must exactly match the value provided in the password field
+        wishlist:
+          type: array
+          items:
+            type: string
+          readOnly: true
+      required: [name, email]
+
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          readOnly: true
+          example: 6a415f7b2ad8438f1374b556
+        title: { type: string }
+        description: { type: string }
+        price:
+          type: number
+          format: float
+        category: { type: string }
+        ratingsAverage:
+          type: string
+          readOnly: true
+        ratingsQuantity:
+          type: string
+          readOnly: true
+        imageCover: { type: string }
+        images:
+          type: array
+          description: List of additional product image filenames
+          items:
+            type: string
+        stock: { type: integer }
+        status:
+          type: string
+          enum: [active, disable, sold out]
+          example: active
+
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: Unique identifying name for the category classification
+          minLength: 2
+          maxLength: 50
+          example: 'Laptops'
+        slug:
+          type: string
+          readOnly: true
+          description: URL-friendly lowercased slug autogenerated from the name field
+          example: 'laptops'
+        image:
+          type: string
+          nullable: true
+          description: Filename string pointing to the uploaded image resource saved on disk
+          example: 'category-1782669179722.jpeg'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+      required: [name]
+
+    Cart:
+      type: object
+      properties:
+        _id: { type: string, example: '6a521e4b8ef2c1145b23d911' }
+        user: { type: string, example: '6a29d03c012df4d358f633e6' }
+        cartItems:
+          type: array
+          items:
+            type: object
+            properties:
+              product: { $ref: '#/components/schemas/Product/properties/_id' }
+              quantity:
+                type: integer
+                minimum: 1
+                example: 2
+              price:
+                type: number
+                description: Total price for this line item (product price * quantity)
+                example: 1200
+              addedAt:
+                { type: string, example: '2026-06-21T19:04:41.687+00:00' }
+        appliedCoupon: { type: string, example: 'SUMMER20' }
+        subTotal: { type: number, example: '2400', readOnly: true }
+        totalPrice: { type: number, example: '2380', readOnly: true }
+
+    Coupon:
+      type: object
+      properties:
+        _id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: The promotional code string
+          example: 'SUMMER20'
+        discount:
+          type: integer
+          description: Percentage value of the discount (1 to 100)
+          minimum: 1
+          maximum: 100
+          example: 20
+        type:
+          type: string
+          enum: [percentage, fixed]
+        expireAt:
+          type: string
+          format: date-time
+          description: The date and time when this coupon becomes invalid
+          example: '2026-12-31T23:59:59.000Z'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    Order:
+      type: object
+      properties:
+        _id: { type: string, readOnly: true }
+        user:
+          { type: string, readOnly: true, example: '6a29d03c012df4d358f633e6' }
+        OrderItems:
+          type: array
+          items:
+            type: object
+            properties:
+              product:
+                type: string
+                description: The unique MongoDB product ID
+                example: '6a415f7b2ad8438f1374b556'
+              quantity: { type: integer, example: 2 }
+              price: { type: number, example: 69099.99 }
+        shippingAddress:
+          type: object
+          properties:
+            city: { type: string, example: 'Cairo' }
+            street: { type: string, example: '123 Main St, Apt 4B' }
+            phone: { type: string, example: '+201234567890' }
+        paymentMethod:
+          type: string
+          enum: [cash on delivery, paymob]
+          example: cash on delivery
+        totalOrderPrice: { type: number, readOnly: true, example: 138199.98 }
+        isPaid: { type: boolean, readOnly: true, example: false }
+        isDelivered: { type: boolean, readOnly: true, example: false }
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+          example: processing
+        createdAt: { type: string, format: date-time, readOnly: true }
+
+    Review:
+      type: object
+      properties:
+        _id: { type: string, readOnly: true }
+        review:
+          type: string
+          description: The text content of the review
+          example: 'Excellent product! Highly recommend the performance.'
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          description: Rating score from 1 to 5 stars
+          example: 5
+        user:
+          type: string
+          readOnly: true
+          description: The MongoDB ID of the user who wrote the review
+          example: '6a29d03c012df4d358f633e6'
+        product:
+          type: string
+          description: The MongoDB ID of the product being reviewed
+          example: '6a415f7b2ad8438f1374b556'
+        createdAt: { type: string, format: date-time, readOnly: true }
+        updatedAt: { type: string, format: date-time, readOnly: true }
+      required: [review, rating, product]
+  #--------------------------------------------------------------------------
+  parameters:
+    productIdPathParam:
+      name: productId
+      in: path
+      required: true
+      description: The unique ID of the product inside the cart line item
+      schema:
+        type: string
+        example: '6a415f7b2ad8438f1374b556'
+
+    couponIdPathParam:
+      name: couponId
+      in: path
+      required: true
+      description: The unique MongoDB ID of the coupon
+      schema:
+        type: string
+        example: '6a512c9b4fd85e12a817399c'
+
+    orderIdPathParam:
+      name: orderId
+      in: path
+      required: true
+      description: The unique MongoDB ID of the order
+      schema:
+        type: string
+        example: '6a512c9b4fd85e12a817399c'
+
+    reviewIdPathParam:
+      name: reviewId
+      in: path
+      required: true
+      description: The unique MongoDB ID of the review
+      schema:
+        type: string
+        example: '6a621d8b4fd93e15b817422f'
+
+    categoryIdPathParam:
+      name: id
+      in: path
+      required: true
+      description: The unique MongoDB ID of the category
+      schema:
+        type: string
+        example: '6a621d8b4fd93e15b817422f'
+  #--------------------------------------------------------------------------
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  #--------------------------------------------------------------------------
+  examples:
+    OneUserExample:
+      value:
+        status: 'success'
+        data: &baseUser
+          _id: '6a29d03c012df4d358f633e6'
+          name: 'khaled'
+          email: 'user@cartify.io'
+          photo: 'user-6a29d03c012df4d358f633e6.jpeg'
+          role: 'user'
+          wishlist: ['6a2ec5c95cb28fc3b9cb9d88']
+          createdAt: '2026-06-10T20:59:40.532Z'
+          updatedAt: '2026-06-29T08:29:39.136Z'
+
+    AllUsersExample:
+      value:
+        status: 'success'
+        result: 2
+        data:
+          - *baseUser
+          - *baseUser
+
+    loginExample:
+      value:
+        status: 'success'
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWFkeSI6dHJ1ZX0.signature'
+        data: *baseUser
+
+    oneProductExample:
+      value:
+        status: 'success'
+        data: &baseProduct
+          _id: '6a2e73d56cff973b1bee2362'
+          title: 'iPhone 13 Pro'
+          description: 'The iPhone 13 Pro is a cutting-edge smartphone with a powerful camera system'
+          price: 54449.99
+          category: 'smartphones'
+          ratingsAverage: 0
+          ratingsQuantity: 0
+          imageCover: 'products-6a2e73d56cff973b1bee2362-1782233992623-cover.jpeg'
+          images:
+            - 'products-6a2e73d56cff973b1bee2362-1782233992953-3.jpeg'
+            - 'products-6a2e73d56cff973b1bee2362-1782233992952-2.jpeg'
+            - 'products-6a2e73d56cff973b1bee2362-1782233992951-1.jpeg'
+          stock: 54
+          sold: 2
+          status: 'active'
+
+    AllproductsExample:
+      value:
+        status: 'success'
+        results: 2
+        data:
+          - *baseProduct
+          - *baseProduct
+  #--------------------------------------------------------------------------
+  responses:
+    notFoundError:
+      description: |
+        Not Found :(
+    badRequestError:
+      description: |
+        Please, provide a valid data.
+    unauthorizedError:
+      description: |
+        You are not logged in
+    forbiddenError:
+      description: |
+        You do not have permission to perform this action.
+    InternalServerError:
+      description: |
+        Something went very wrong! While proccessing the request.
+
+    DashboardOverviewResponse:
+      description: Success data overview retrieved successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: success }
+              data:
+                type: object
+                properties:
+                  totalUsers: { type: integer, example: 1450 }
+                  product:
+                    type: object
+                    properties:
+                      total: { type: integer, example: 350 }
+                      active: { type: integer, example: 320 }
+                      outOfStock: { type: integer, example: 30 }
+                  orders:
+                    type: object
+                    properties:
+                      total: { type: integer, example: 1200 }
+                      revenue: { type: number, example: 85450.50 }
+                      breakdown:
+                        type: object
+                        properties:
+                          pending: { type: integer, example: 15 }
+                          processing: { type: integer, example: 45 }
+                          shipped: { type: integer, example: 20 }
+                          completed: { type: integer, example: 1100 }
+                          cancelled: { type: integer, example: 20 }
+
+    MonthlySalesResponse:
+      description: Success timeline sales metrics distribution
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: success }
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    month: { type: string, example: 'January' }
+                    salesCount: { type: integer, example: 140 }
+                    revenue: { type: number, example: 12400.99 }
+
+    OrderStatusResponse:
+      description: Success status proportions data list
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: success }
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    status: { type: string, example: 'delivered' }
+                    count: { type: integer, example: 1100 }
+                    percentage: { type: number, example: 91.6 }
+
+    CategoryResponse:
+      description: Success - Category data packet retrieved.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: success }
+              data:
+                $ref: '#/components/schemas/Category'
+
+    CategoryListResponse:
+      description: Success - Collection array list of all categories.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: success }
+              results: { type: integer, example: 12 }
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
