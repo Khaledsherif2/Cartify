@@ -6,9 +6,12 @@ const { upload } = require('../utils/uploadImages');
 const AppError = require('../utils/appError');
 
 exports.getAllCategories = async (req, res) => {
-  const categories = await categoriesSerivce.getAllCategories();
+  const { categories, pagination } = await categoriesSerivce.getAllCategories(
+    req.query,
+  );
   return res.status(200).json({
     status: 'success',
+    pagination,
     data: categories,
   });
 };
@@ -29,9 +32,6 @@ exports.addCategory = async (req, res) => {
     const uploadPath = path.join(__dirname, '../public/img/categories');
     const { filename, buffer } = req.processedImage;
     await fs.writeFile(`${uploadPath}/${filename}`, buffer);
-    if (category.image) {
-      await fs.unlink(`${uploadPath}/${category.image}`).catch(() => {});
-    }
   }
   return res.status(201).json({
     status: 'success',

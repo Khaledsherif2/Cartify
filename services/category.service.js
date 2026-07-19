@@ -1,9 +1,19 @@
 const Category = require('../models/category.model');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
-exports.getAllCategories = async _ => {
-  const categories = await Category.find();
-  return categories;
+exports.getAllCategories = async query => {
+  const features = new APIFeatures(Category.find(), query)
+    .search()
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const categories = await features.query;
+  const pagination = await features.getPaginationResult();
+
+  return { categories, pagination };
 };
 
 exports.getCategory = async categoryId => {

@@ -3,10 +3,10 @@ const AppError = require('../utils/appError');
 const { filterObj } = require('../utils/filterObj');
 
 exports.getAllReviews = async (req, res) => {
-  const reviews = await reviewService.getAllReviews();
+  const { reviews, pagination } = await reviewService.getAllReviews(req.query);
   res.status(200).json({
     status: 'success',
-    results: reviews.length,
+    pagination,
     data: reviews,
   });
 };

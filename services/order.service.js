@@ -3,13 +3,22 @@ const Order = require('../models/order.model');
 const Product = require('../models/product.model');
 const Cart = require('../models/cart.model');
 const Coupon = require('../models/coupon.model');
+const APIFeatures = require('../utils/apiFeatures');
 const { validateProducts } = require('../utils/validateOrderProducts');
 const AppError = require('../utils/appError');
 const paymobService = require('./paymob.service');
 
-exports.getAllOrders = async _ => {
-  const orders = await Order.find();
-  return orders;
+exports.getAllOrders = async query => {
+  const features = new APIFeatures(Order.find(), query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const orders = await features.query;
+  const pagination = await features.getPaginationResult();
+
+  return { orders, pagination };
 };
 
 exports.getUserOrders = async userId => {

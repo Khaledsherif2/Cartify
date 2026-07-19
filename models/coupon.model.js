@@ -21,6 +21,8 @@ const couponSchema = new mongoose.Schema({
   },
 });
 
+couponSchema.index({ name: 'text' });
+
 const Coupon = mongoose.model('Coupon', couponSchema);
 
 module.exports = Coupon;

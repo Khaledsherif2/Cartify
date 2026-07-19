@@ -19,35 +19,34 @@ servers:
     description: Live server
 #--------------------------------------------------------------------------
 tags:
-  - name: Users
+  - name: '👥 Users'
     description: Users related operations
-  - name: Products
+  - name: '📦 Products'
     description: Products related operations
-  - name: Categories
+  - name: '🗂️ Categories'
     description: Categories related operations
-  - name: Wishlist
+  - name: '❤️ Wishlist'
     description: Wishlist related operations
-  - name: Cart
+  - name: '🛒 Cart'
     description: Cart related operations
-  - name: Coupons
+  - name: '🎟️ Coupons'
     description: Coupon related operations
-  - name: Orders
+  - name: '🛍️ Orders'
     description: Orders related operations
-  - name: Reviews
+  - name: '⭐ Reviews'
     description: Reviews related operations
-  - name: Dashboard
+  - name: '📊 Dashboard'
     description: Dashboard related operations
-  - name: Paymob
+  - name: '💳 Paymob'
     description: Paymob related operations
 #--------------------------------------------------------------------------
 security:
-  - BasicAuth: []
   - BearerAuth: []
 #--------------------------------------------------------------------------
 paths:
   /auth/signup:
     post:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Join our Cartify Family
       description: Creates a new user profile inside the system.
       security: []
@@ -84,7 +83,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/login:
     post:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Authenticate user credentials
       description: Verifies a user's email and password to start a secure session.
       security: []
@@ -116,7 +115,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/forgotPassword:
     post:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Request a password reset token
       description: Initiates the password recovery process for users who forgot their credentials.
       security: []
@@ -152,7 +151,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/resetPassword/{token}:
     post:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Reset password using token
       description: Validates the recovery token passed via the URL path and updates the user's password.
       parameters:
@@ -192,7 +191,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/updatePassword:
     post:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Update current user password.
       description: Allows an authenticated user to change their account password.
       requestBody:
@@ -229,7 +228,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/updateProfile:
     patch:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Update current user profile info
       description: Allows the currently logged-in user to update their basic profile data (e.g., name, email, photo).
       requestBody:
@@ -275,7 +274,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/deleteProfile:
     delete:
-      tags: [Users]
+      tags: [👥 Users]
       summary: Deactivate current user account
       description: Allows the currently logged-in user to deactivate their own account.
       responses:
@@ -287,16 +286,34 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/users:
     get:
-      tags:
-        - Users
+      tags: [👥 Users]
       summary: List all users (Admin Only)
       description: Return the list of all available users
       parameters:
-        - name: userId
+        - name: keyword
           in: query
-          schema:
-            type: string
-            example: 6a3d41c0e3435e7e8e68c855
+          description: Search users by name or email
+          schema: { type: string, example: khaled }
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., -createdAt)
+          schema: { type: string, example: -createdAt }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., name,email)
+          schema: { type: string, example: name, email, role }
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
+        - name: role
+          in: query
+          description: Filter users by their role (e.g., admin, user, manager)
+          schema: { type: string, example: user }
       responses:
         '200':
           description: success
@@ -322,7 +339,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/users/{id}:
     get:
-      tags: [Users]
+      tags: [👥 Users]
       summary: List user details (Admin Only)
       description: Return user details
       parameters:
@@ -355,17 +372,35 @@ paths:
   #--------------------------------------------------------------------------
   /products:
     get:
-      tags:
-        - Products
+      tags: [📦 Products]
       summary: List all products
       description: Return the list of products from Cartify
       security: []
       parameters:
-        - name: productId
+        - name: keyword
           in: query
-          schema:
-            type: string
-            example: 6a3d41c0e3435e7e8e68c855
+          description: Search products by title or description
+          schema: { type: string, example: laptop }
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., -price,createdAt)
+          schema: { type: string, example: -price }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., title,price)
+          schema: { type: string, example: title, price, image }
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
+        - name: price[gte]
+          in: query
+          description: Filter by price greater than or equal to
+          schema: { type: number, example: 100 }
       responses:
         '200':
           description: success
@@ -379,7 +414,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      tags: [Products]
+      tags: [📦 Products]
       summary: add new product (Admin Only)
       description: Post product details to Cartify for demand and supply
       requestBody:
@@ -432,8 +467,7 @@ paths:
           type: string
           example: 6a3d41c0e3435e7e8e68c855
     get:
-      tags:
-        - Products
+      tags: [📦 Products]
       summary: List product details
       description: Return product details
       responses:
@@ -459,7 +493,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
-      tags: [Products]
+      tags: [📦 Products]
       summary: Update product details (Admin Only)
       description: Update product details to Cartify for demand and supply
       requestBody:
@@ -516,7 +550,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Products]
+      tags: [📦 Products]
       summary: Delete product (Admin Only)
       description: Delete product details from Cartify
       responses:
@@ -533,9 +567,30 @@ paths:
   #--------------------------------------------------------------------------
   /categories:
     get:
-      tags: [Categories]
+      tags: [🗂️ Categories]
       summary: Get all categories
       description: Returns a complete list of all product categories available on the platform. Protected by authentication middleware.
+      parameters:
+        - name: keyword
+          in: query
+          description: Search categories by name or description
+          schema: { type: string, example: electronics }
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., name, -createdAt)
+          schema: { type: string, example: name }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., name,slug)
+          schema: { type: string, example: name, slug, image }
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
       responses:
         '200':
           $ref: '#/components/responses/CategoryListResponse'
@@ -546,7 +601,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      tags: [Categories]
+      tags: [🗂️ Categories]
       summary: Add a new category (Admin Only)
       description: Processes form data inputs along with a category banner image file to write a new categorization category to disk.
       requestBody:
@@ -577,7 +632,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/categoryIdPathParam'
     get:
-      tags: [Categories]
+      tags: [🗂️ Categories]
       summary: Get a specific category (Admin Only)
       description: Fetches metadata for an isolated category item by scanning its database key identifier.
       responses:
@@ -592,7 +647,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
-      tags: [Categories]
+      tags: [🗂️ Categories]
       summary: Update a category (Admin Only)
       description: Modifies existing category configurations. All payload parameters remain partial and completely optional.
       requestBody:
@@ -621,7 +676,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Categories]
+      tags: [🗂️ Categories]
       summary: Delete a category (Admin Only)
       description: Permanently clears a category node entirely out of database memory indices.
       responses:
@@ -640,9 +695,18 @@ paths:
   #--------------------------------------------------------------------------
   /wishlist:
     get:
-      tags: [Wishlist]
+      tags: [❤️ Wishlist]
       summary: Get current user's wishlist
       description: Retrieves the list of products saved in the logged-in user's wishlist.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
       responses:
         '200':
           description: Wishlist retrieved successfully
@@ -685,7 +749,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/productIdPathParam'
     post:
-      tags: [Wishlist]
+      tags: [❤️ Wishlist]
       summary: Add a product to wishlist
       description: Adds a product ID to the user's wishlist array.
       responses:
@@ -711,7 +775,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Wishlist]
+      tags: [❤️ Wishlist]
       summary: Remove a product from wishlist
       description: Removes a specific product ID from the user's wishlist array.
       responses:
@@ -726,7 +790,7 @@ paths:
   #--------------------------------------------------------------------------
   /cart:
     get:
-      tags: [Cart]
+      tags: [🛒 Cart]
       summary: Retrieve the logged-in user's cart
       description: Fetches the active shopping cart and populates product details for the current authenticated session.
       responses:
@@ -747,7 +811,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      tags: [Cart]
+      tags: [🛒 Cart]
       summary: Add an item or update its quantity in the cart
       description: If the product does not exist in the cart, it inserts it. If it already exists, it updates or increments the quantity.
       requestBody:
@@ -788,7 +852,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/productIdPathParam'
     patch:
-      tags: [Cart]
+      tags: [🛒 Cart]
       summary: Update the quantity of a specific item in the cart
       description: Directly overwrites the quantity of an existing item in the cart.
       requestBody:
@@ -846,7 +910,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Cart]
+      tags: [🛒 Cart]
       summary: Remove a specific line item from the cart
       description: Completely removes the product item line from the user's cart array.
       responses:
@@ -874,7 +938,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /cart/apply-coupon:
     patch:
-      tags: [Cart]
+      tags: [🛒 Cart]
       summary: Apply a discount coupon code to the cart
       description: Validates a coupon code string and applies the corresponding percentage or fixed discount to the cart total price.
       requestBody:
@@ -911,9 +975,39 @@ paths:
   #--------------------------------------------------------------------------
   /coupons:
     get:
-      tags: [Coupons]
+      tags: [🎟️ Coupons]
       summary: Get all coupons (Admin Only)
       description: Returns a complete list of active and inactive discount coupons.
+      parameters:
+        - name: keyword
+          in: query
+          description: Search coupons by code name
+          schema: { type: string, example: SUMMER50 }
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., -discount, -expire)
+          schema: { type: string, example: -discount }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., name,discount,expire)
+          schema: { type: string, example: name, discount, expire }
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
+        - name: expire[gte]
+          in: query
+          description: Filter coupons that expire after a specific date
+          schema:
+            {
+              type: string,
+              format: date-time,
+              example: 2026-07-16T00:00:00.000Z,
+            }
       responses:
         '200':
           description: Success
@@ -935,7 +1029,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      tags: [Coupons]
+      tags: [🎟️ Coupons]
       summary: Add a new coupon (Admin Only)
       description: Creates a unique discount coupon code in the system.
       requestBody:
@@ -967,7 +1061,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/couponIdPathParam'
     patch:
-      tags: [Coupons]
+      tags: [🎟️ Coupons]
       summary: Update a coupon (Admin Only)
       description: Update any combination of name, expiry, or discount values. No specific fields are required.
       requestBody:
@@ -1007,7 +1101,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Coupons]
+      tags: [🎟️ Coupons]
       summary: Delete a coupon (Admin Only)
       description: Permanently purges a coupon from the database using its unique ID.
       responses:
@@ -1024,9 +1118,40 @@ paths:
   #--------------------------------------------------------------------------
   /orders:
     get:
-      tags: [Orders]
+      tags: [🛍️ Orders]
       summary: Get all orders (Admin Only)
       description: Returns a global history of all orders across every user profile in the database.
+      parameters:
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., -totalOrderPrice, -createdAt)
+          schema: { type: string, example: -createdAt }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., totalOrderPrice,isPaid)
+          schema:
+            type: string
+            example: 'totalOrderPrice,isPaid,isDelivered,createdAt'
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
+        - name: user
+          in: query
+          description: Filter orders by user ID
+          schema: { type: string, example: 6a2d38c484fd5a42b817397b }
+        - name: isPaid
+          in: query
+          description: Filter orders by payment status
+          schema: { type: boolean, example: true }
+        - name: isDelivered
+          in: query
+          description: Filter orders by delivery status
+          schema: { type: boolean, example: false }
       responses:
         '200':
           description: Success
@@ -1049,7 +1174,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /orders/checkout:
     post:
-      tags: [Orders]
+      tags: [🛍️ Orders]
       summary: Checkout (Create order from active cart)
       description: Converts items inside the authenticated user's current shopping cart into a permanent order.
       requestBody:
@@ -1092,7 +1217,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /orders/my-orders:
     get:
-      tags: [Orders]
+      tags: [🛍️ Orders]
       summary: Get my orders
       description: Returns an array list tracking all historical orders placed strictly by the logged-in user session.
       responses:
@@ -1119,8 +1244,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/orderIdPathParam'
     patch:
-      tags:
-        - Orders
+      tags: [🛍️ Orders]
       summary: Update order status (Admin Only)
       description: Allows managers or admins to step-progress the order status tracking flag.
       requestBody:
@@ -1155,7 +1279,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Orders]
+      tags: [🛍️ Orders]
       summary: Cancel an order
       description: Allows a user or admin to cancel an unfulfilled order, altering its baseline state to cancelled.
       responses:
@@ -1181,9 +1305,36 @@ paths:
   #--------------------------------------------------------------------------
   /reviews:
     get:
-      tags: [Reviews]
+      tags: [⭐ Reviews]
       summary: Get all reviews (admin only)
       description: Returns a complete list of all product reviews submitted across the platform.
+      parameters:
+        - name: keyword
+          in: query
+          description: Search reviews by comment text or user description
+          schema: { type: string, example: good }
+        - name: sort
+          in: query
+          description: Sort fields (use minus '-' for descending e.g., -ratings, -createdAt)
+          schema: { type: string, example: -ratings }
+        - name: fields
+          in: query
+          description: Fields to include or exclude (comma-separated e.g., ratings,title)
+          schema:
+            type: string
+            example: 'ratings,title,user,product'
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
+        - name: ratings
+          in: query
+          description: Filter reviews by specific rating score (1 to 5)
+          schema: { type: number, example: 5 }
       responses:
         '200':
           description: Success
@@ -1205,7 +1356,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      tags: [Reviews]
+      tags: [⭐ Reviews]
       summary: Add a new review (only the user who purchased the product)
       description: Creates a new star rating and text review for a specific product item.
       requestBody:
@@ -1237,7 +1388,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/reviewIdPathParam'
     get:
-      tags: [Reviews]
+      tags: [⭐ Reviews]
       summary: Get a specific review (Admin Only)
       description: Fetches a single detailed review document using its unique ID identifier.
       responses:
@@ -1262,7 +1413,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     patch:
-      tags: [Reviews]
+      tags: [⭐ Reviews]
       summary: Update a review
       description: Allows a user to edit their text comments or modify their star score rating. No fields are required.
       requestBody:
@@ -1291,7 +1442,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
-      tags: [Reviews]
+      tags: [⭐ Reviews]
       summary: Delete a review
       description: Permanently removes a review document from the database collection.
       responses:
@@ -1306,39 +1457,21 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   #--------------------------------------------------------------------------
-  /dashboard/overview:
-    get:
-      tags: [Dashboard]
-      summary: Get platform data overview (Admin Only)
-      description: Returns core aggregation counts covering total user demographics, inventory metrics, and total monetization breakdown.
-      responses:
-        '200':
-          $ref: '#/components/responses/DashboardOverviewResponse'
-        '401':
-          $ref: '#/components/responses/unauthorizedError'
-        '403':
-          $ref: '#/components/responses/forbiddenError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /dashboard/sales-by-month:
-    get:
-      tags: [Dashboard]
-      summary: Get operational revenue timelines by month (Admin Only)
-      description: Aggregates historical completed payment distributions categorized by calendar month.
-      responses:
-        '200':
-          $ref: '#/components/responses/MonthlySalesResponse'
-        '401':
-          $ref: '#/components/responses/unauthorizedError'
-        '403':
-          $ref: '#/components/responses/forbiddenError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
   /dashboard/top-selling-products:
     get:
-      tags: [Dashboard]
-      summary: Get best-selling inventory line items (Admin Only)
+      tags: [📊 Dashboard]
+      summary: Get best-selling inventory line items
       description: Returns products sorted by total volume sold.
+      security: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
       responses:
         '200':
           description: Success
@@ -1361,9 +1494,19 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /dashboard/top-rated-products:
     get:
-      tags: [Dashboard]
-      summary: Get highest-reviewed products (Admin Only)
+      tags: [📊 Dashboard]
+      summary: Get highest-reviewed products
       description: Lists the highest quality products based on platform consumer rating averages.
+      security: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
       responses:
         '200':
           description: Success
@@ -1384,11 +1527,48 @@ paths:
           $ref: '#/components/responses/forbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /dashboard/overview:
+    get:
+      tags: [📊 Dashboard]
+      summary: Get platform data overview (Admin Only)
+      description: Returns core aggregation counts covering total user demographics, inventory metrics, and total monetization breakdown.
+      responses:
+        '200':
+          $ref: '#/components/responses/DashboardOverviewResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dashboard/sales-by-month:
+    get:
+      tags: [📊 Dashboard]
+      summary: Get operational revenue timelines by month (Admin Only)
+      description: Aggregates historical completed payment distributions categorized by calendar month.
+      responses:
+        '200':
+          $ref: '#/components/responses/MonthlySalesResponse'
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /dashboard/recent-orders:
     get:
-      tags: [Dashboard]
+      tags: [📊 Dashboard]
       summary: Get latest order timeline logs (Admin Only)
       description: Pulls the newest incoming customer requests for system fulfillment tracking queues.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema: { type: integer, default: 1, example: 1 }
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema: { type: integer, default: 10, example: 10 }
       responses:
         '200':
           description: Success
@@ -1411,7 +1591,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /dashboard/orders-status:
     get:
-      tags: [Dashboard]
+      tags: [📊 Dashboard]
       summary: Get processing status proportions (Admin Only)
       description: Percentage allocation overview for tracking order completion rates.
       responses:
@@ -1425,7 +1605,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /dashboard/average-order-value:
     get:
-      tags: [Dashboard]
+      tags: [📊 Dashboard]
       summary: Get standard transaction value metrics (Admin Only)
       description: Computes average transaction sizes across historical operations to evaluate baseline customer cart values.
       responses:
@@ -1447,10 +1627,63 @@ paths:
           $ref: '#/components/responses/forbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /dashboard/most-valuable-customers:
+    get:
+      tags: [📊 Dashboard]
+      summary: Get most valuable customers (Admin Only)
+      description: Retrieves a ranked list of customers based on their total spending on successful orders (delivered or paid), with details on total amount spent and number of orders.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 5
+            example: 5
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  pagination:
+                    type: object
+                    properties:
+                      currentPage: { type: integer, example: 1 }
+                      totalPages: { type: integer, example: 3 }
+                      totalResults: { type: integer, example: 15 }
+                      limit: { type: integer, example: 5 }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          { type: string, example: 6a3d41c0e3435e7e8e68c855 }
+                        totalSpent: { type: number, example: 12500.50 }
+                        ordersCount: { type: integer, example: 4 }
+                        name: { type: string, example: 'Khaled' }
+                        email: { type: string, example: 'user@example.com' }
+        '401':
+          $ref: '#/components/responses/unauthorizedError'
+        '403':
+          $ref: '#/components/responses/forbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   #--------------------------------------------------------------------------
   /paymob/retry-payment/{orderId}:
     post:
-      tags: [Paymob]
+      tags: [💳 Paymob]
       summary: Retry a failed or pending order payment via Paymob
       description: Generates a fresh Paymob checkout URL and client secret to attempt payment completion for an unpaid order.
       parameters:

@@ -75,10 +75,10 @@ exports.updatePassword = async (req, res) => {
 };
 
 exports.getAllUsers = async (req, res) => {
-  const users = await authService.getAllUsers();
+  const { users, pagination } = await authService.getAllUsers(req.query);
   res.status(200).json({
     status: 'success',
-    result: users.length,
+    pagination,
     data: users,
   });
 };

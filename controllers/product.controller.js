@@ -5,10 +5,12 @@ const AppError = require('../utils/appError');
 const { upload } = require('../utils/uploadImages');
 
 exports.getAllProducts = async (req, res) => {
-  const products = await productService.getAllProducts(req.query);
+  const { products, pagination } = await productService.getAllProducts(
+    req.query,
+  );
   res.status(200).json({
     status: 'success',
-    results: products.length,
+    pagination,
     data: products,
   });
 };

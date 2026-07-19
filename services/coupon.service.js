@@ -1,9 +1,19 @@
 const Coupon = require('../models/coupon.model');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
-exports.getAllCoupons = async _ => {
-  const coupons = await Coupon.find();
-  return coupons;
+exports.getAllCoupons = async query => {
+  const features = new APIFeatures(Coupon.find(), query)
+    .search()
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const coupons = await features.query;
+  const pagination = await features.getPaginationResult();
+
+  return { coupons, pagination };
 };
 
 exports.getCoupon = async couponId => {

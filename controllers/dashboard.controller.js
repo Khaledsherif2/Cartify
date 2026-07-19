@@ -17,25 +17,34 @@ exports.getSalesByMonth = async (req, res) => {
 };
 
 exports.getTopSellingProducts = async (req, res) => {
-  const products = await dashboardService.getTopSellingProducts(req.query);
+  const { products, pagination } = await dashboardService.getTopSellingProducts(
+    req.query,
+  );
   res.status(200).json({
     status: 'success',
+    pagination,
     data: products,
   });
 };
 
 exports.getTopRatedProducts = async (req, res) => {
-  const products = await dashboardService.getTopRatedProducts(req.query);
+  const { products, pagination } = await dashboardService.getTopRatedProducts(
+    req.query,
+  );
   res.status(200).json({
     status: 'success',
+    pagination,
     data: products,
   });
 };
 
 exports.getRecentOrders = async (req, res) => {
-  const orders = await dashboardService.getRecentOrders(req.query);
+  const { orders, pagination } = await dashboardService.getRecentOrders(
+    req.query,
+  );
   res.status(200).json({
     status: 'success',
+    pagination,
     data: orders,
   });
 };
@@ -57,11 +66,11 @@ exports.getAverageOrderValue = async (req, res) => {
 };
 
 exports.getMostValuableCustomers = async (req, res) => {
-  const mostValuableCustomers = await dashboardService.getMostValuableCustomers(
-    req.query,
-  );
+  const { customers, pagination } =
+    await dashboardService.getMostValuableCustomers(req.query);
   res.status(200).json({
     status: 'success',
-    data: mostValuableCustomers,
+    pagination,
+    data: customers,
   });
 };

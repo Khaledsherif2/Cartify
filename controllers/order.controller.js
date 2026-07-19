@@ -4,10 +4,10 @@ const { filterObj } = require('../utils/filterObj');
 const Email = require('./../utils/email');
 
 exports.getAllOrders = async (req, res) => {
-  const orders = await orderService.getAllOrders();
+  const { orders, pagination } = await orderService.getAllOrders(req.query);
   res.status(200).json({
     status: 'success',
-    result: orders.length,
+    pagination,
     data: orders,
   });
 };

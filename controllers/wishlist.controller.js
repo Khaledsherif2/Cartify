@@ -3,10 +3,13 @@ const productService = require('../services/product.service');
 const AppError = require('../utils/appError');
 
 exports.getWishlist = async (req, res) => {
-  const { wishlist } = await wishlistService.getWishlist(req.user.id);
+  const { wishlist, pagination } = await wishlistService.getWishlist(
+    req.user.id,
+    req.query,
+  );
   res.status(200).json({
     status: 'success',
-    results: wishlist.length,
+    pagination,
     data: wishlist,
   });
 };

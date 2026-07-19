@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const User = require('../models/user.model');
 const AppError = require('../utils/appError');
 const signToken = require('../utils/jwt');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.signup = async userData => {
   const newUser = await User.create(userData);
@@ -58,9 +59,18 @@ exports.updatePassword = async (userId, userData) => {
   return { newToken, user };
 };
 
-exports.getAllUsers = async _ => {
-  const users = await User.find();
-  return users;
+exports.getAllUsers = async query => {
+  const features = new APIFeatures(User.find(), query)
+    .search()
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const users = await features.query;
+  const pagination = await features.getPaginationResult();
+
+  return { users, pagination };
 };
 
 exports.getUser = async userId => {

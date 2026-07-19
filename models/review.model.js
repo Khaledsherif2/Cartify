@@ -29,6 +29,8 @@ const reviewSchema = new mongoose.Schema(
   },
 );
 
+reviewSchema.index({ review: 'text' });
+
 reviewSchema.pre(/^find/, async function () {
   this.populate({
     path: 'user',

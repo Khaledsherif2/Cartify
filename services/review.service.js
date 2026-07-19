@@ -2,6 +2,7 @@ const Review = require('../models/review.model');
 const Product = require('../models/product.model');
 const Order = require('../models/order.model');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
 const checkExistingReview = async reviewData => {
   const review = await Review.findOne({
@@ -11,9 +12,18 @@ const checkExistingReview = async reviewData => {
   return review;
 };
 
-exports.getAllReviews = async _ => {
-  const reviews = await Review.find();
-  return reviews;
+exports.getAllReviews = async query => {
+  const features = new APIFeatures(Review.find(), query)
+    .search()
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const reviews = await features.query;
+  const pagination = await features.getPaginationResult();
+
+  return { reviews, pagination };
 };
 
 exports.getReview = async reviewId => {

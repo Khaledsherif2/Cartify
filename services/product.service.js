@@ -11,8 +11,9 @@ exports.getAllProducts = async query => {
     .paginate();
 
   const products = await features.query;
+  const pagination = await features.getPaginationResult();
 
-  return products;
+  return { products, pagination };
 };
 
 exports.getProduct = async productId => {

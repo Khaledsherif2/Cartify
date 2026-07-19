@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const compression = require('compression');
+const cookieParser = require('cookie-parser');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 
@@ -45,6 +46,7 @@ const limiter = rateLimit({
 
 app.set('query parser', 'extended');
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Compression

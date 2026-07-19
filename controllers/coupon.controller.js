@@ -1,9 +1,10 @@
 const couponSerivce = require('../services/coupon.service');
 
 exports.getAllCoupons = async (req, res) => {
-  const coupons = await couponSerivce.getAllCoupons();
+  const { coupons, pagination } = await couponSerivce.getAllCoupons(req.query);
   return res.status(200).json({
     status: 'success',
+    pagination,
     data: coupons,
   });
 };

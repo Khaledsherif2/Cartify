@@ -53,5 +53,19 @@ class APIFeatures {
     this.query = this.query.skip(skip).limit(limit);
     return this;
   }
+
+  async getPaginationResult() {
+    const Model = this.query.model;
+    const totalDocuments = await Model.countDocuments(this.query.getFilter());
+    const page = this.queryString.page * 1 || 1;
+    const limit = this.queryString.limit * 1 || 100;
+
+    return {
+      currentPage: page,
+      totalPages: Math.ceil(totalDocuments / limit),
+      limit,
+      totalResults: totalDocuments,
+    };
+  }
 }
 module.exports = APIFeatures;

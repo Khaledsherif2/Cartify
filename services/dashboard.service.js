@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const Product = require('../models/product.model');
 const Order = require('../models/order.model');
+const { buildPaginationResult } = require('../utils/paginationHelper');
 
 exports.getOverview = async _ => {
   const [totalUsers, productStats, orderStats] = await Promise.all([
@@ -194,98 +195,123 @@ exports.getSalesByMonth = async query => {
 };
 
 exports.getTopSellingProducts = async query => {
-  const limit = query.limit ? parseInt(query.limit) : 5;
+  const page = query.page * 1 || 1;
+  const limit = query.limit * 1 || 5;
+  const skip = (page - 1) * limit;
 
-  const topSellingProducts = await Product.aggregate([
+  const result = await Product.aggregate([
+    { $match: { sold: { $gt: 0 } } },
+    { $sort: { sold: -1 } },
     {
-      $sort: { sold: -1 },
-    },
-    {
-      $limit: limit,
-    },
-    {
-      // prettier-ignore
-      $project: {
-        _id: 1, title: 1,  price: 1, sold: 1,  stock: 1, imageCover: 1,
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+          {
+            // prettier-ignore
+            $project: {
+              _id: 1, title: 1, price: 1, sold: 1, stock: 1, imageCover: 1,
+            },
+          },
+        ],
+        totalCount: [{ $count: 'count' }],
       },
     },
   ]);
 
-  return {
-    count: topSellingProducts.length,
-    products: topSellingProducts,
-  };
+  const { data: products, pagination } = buildPaginationResult(
+    result,
+    page,
+    limit,
+  );
+
+  return { products, pagination };
 };
 
 exports.getTopRatedProducts = async query => {
-  const limit = query.limit ? parseInt(query.limit) : 5;
+  const page = query.page * 1 || 1;
+  const limit = query.limit * 1 || 5;
+  const skip = (page - 1) * limit;
 
-  const topRatedProducts = await Product.aggregate([
+  const result = await Product.aggregate([
+    { $match: { ratingsQuantity: { $gte: 2 } } },
+    { $sort: { ratingsAverage: -1 } },
     {
-      $match: { ratingsQuantity: { $gte: 2 } },
-    },
-    {
-      $sort: { ratingsAverage: -1 },
-    },
-    {
-      $limit: limit,
-    },
-    {
-      // prettier-ignore
-      $project: {
-        _id: 1, title: 1,  price: 1, ratingsAverage: 1,  stock: 1, imageCover: 1,
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+          {
+            // prettier-ignore
+            $project: {
+              _id: 1, title: 1, price: 1, ratingsAverage: 1, ratingsQuantity: 1, stock: 1, imageCover: 1,
+            },
+          },
+        ],
+        totalCount: [{ $count: 'count' }],
       },
     },
   ]);
 
-  return {
-    count: topRatedProducts.length,
-    products: topRatedProducts,
-  };
+  const { data: products, pagination } = buildPaginationResult(
+    result,
+    page,
+    limit,
+  );
+
+  return { products, pagination };
 };
 
 exports.getRecentOrders = async query => {
-  const limit = query.limit ? parseInt(query.limit) : 10;
+  const page = query.page * 1 || 1;
+  const limit = query.limit * 1 || 10;
+  const skip = (page - 1) * limit;
 
-  const recentOrders = await Order.aggregate([
+  const result = await Order.aggregate([
+    { $sort: { createdAt: -1 } },
     {
-      $sort: { createdAt: -1 },
-    },
-    {
-      $limit: limit,
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'user',
-        foreignField: '_id',
-        as: 'userData',
-      },
-    },
-    {
-      $unwind: {
-        path: '$userData',
-        preserveNullAndEmptyArrays: true,
-        // to ensure the requset does not disapper if the user is deleted
-      },
-    },
-    {
-      // prettier-ignore
-      $project: {
-        _id: 1, totalPrice: 1, status: 1, isPaid: 1, createdAt: 1,
-        customer: {
-          _id: '$userData._id',
-          name: '$userData.name',
-          email: '$userData.email'
-        },
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user',
+              foreignField: '_id',
+              as: 'userData',
+            },
+          },
+          {
+            $unwind: {
+              path: '$userData',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            // prettier-ignore
+            $project: {
+              _id: 1, totalPrice: 1, status: 1, isPaid: 1, createdAt: 1,
+              customer: {
+                _id: '$userData._id',
+                name: '$userData.name',
+                email: '$userData.email',
+              },
+            },
+          },
+        ],
+        totalCount: [{ $count: 'count' }],
       },
     },
   ]);
 
-  return {
-    count: recentOrders.length,
-    products: recentOrders,
-  };
+  const { data: orders, pagination } = buildPaginationResult(
+    result,
+    page,
+    limit,
+  );
+
+  return { orders, pagination };
 };
 
 exports.getOrdersStatus = async () => {
@@ -352,14 +378,12 @@ exports.getAverageOrderValue = async _ => {
 };
 
 exports.getMostValuableCustomers = async query => {
-  const limit = query.limit ? parseInt(query.limit) : 5;
+  const page = query.page * 1 || 1;
+  const limit = query.limit * 1 || 5;
+  const skip = (page - 1) * limit;
 
-  const topCustomers = await Order.aggregate([
-    {
-      $match: {
-        $or: [{ status: 'delivered' }, { isPaid: true }],
-      },
-    },
+  const result = await Order.aggregate([
+    { $match: { $or: [{ status: 'delivered' }, { isPaid: true }] } },
     {
       $group: {
         _id: '$user',
@@ -367,40 +391,47 @@ exports.getMostValuableCustomers = async query => {
         ordersCount: { $sum: 1 },
       },
     },
+    { $sort: { totalSpent: -1 } },
     {
-      $sort: { totalSpent: -1 },
-    },
-    {
-      $limit: limit,
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'userData',
-      },
-    },
-    {
-      $unwind: {
-        path: '$userData',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        customerId: '$_id',
-        totalSpent: { $round: ['$totalSpent', 2] },
-        ordersCount: 1,
-        name: { $ifNull: ['$userData.name', 'Deleted User'] },
-        email: { $ifNull: ['$userData.email', 'N/A'] },
+      $facet: {
+        data: [
+          { $skip: skip },
+          { $limit: limit },
+          {
+            $lookup: {
+              from: 'users',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'userData',
+            },
+          },
+          {
+            $unwind: {
+              path: '$userData',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              customerId: '$_id',
+              totalSpent: { $round: ['$totalSpent', 2] },
+              ordersCount: 1,
+              name: { $ifNull: ['$userData.name', 'Deleted User'] },
+              email: { $ifNull: ['$userData.email', 'N/A'] },
+            },
+          },
+        ],
+        totalCount: [{ $count: 'count' }],
       },
     },
   ]);
 
-  return {
-    count: topCustomers.length,
-    customers: topCustomers,
-  };
+  const { data: customers, pagination } = buildPaginationResult(
+    result,
+    page,
+    limit,
+  );
+
+  return { customers, pagination };
 };

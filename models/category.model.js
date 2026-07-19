@@ -26,6 +26,8 @@ const categorySchema = new mongoose.Schema(
   },
 );
 
+categorySchema.index({ name: 'text' });
+
 categorySchema.pre('save', function () {
   if (this.isModified('name')) {
     this.slug = slugify(this.name, {
