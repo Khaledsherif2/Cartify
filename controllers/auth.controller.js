@@ -101,17 +101,22 @@ exports.updateProfile = async (req, res) => {
     throw new AppError('Please provide us the data you wish to update', 400);
 
   const data = filterObj(req.body, 'name', 'email');
-  if (req.file) data.photo = req.file.filename;
+  const uploadPath = path.join(__dirname, '../public/img/users');
+
+  if (req.processedImage) {
+    const { filename, buffer } = req.processedImage;
+    await fs.writeFile(`${uploadPath}/${filename}`, buffer);
+    data.photo = filename;
+  }
 
   const result = await authService.updateProfile(req.user.id, data);
 
-  if (req.processedImage) {
-    const uploadPath = path.join(__dirname, '../public/img/users');
-    const { filename, buffer } = req.processedImage;
-    await fs.writeFile(`${uploadPath}/${filename}`, buffer);
-    if (result.user.photo && result.user.photo !== 'default.jpg') {
-      await fs.unlink(`${uploadPath}/${result.user.photo}`).catch(() => {});
-    }
+  if (
+    req.processedImage &&
+    result.user.photo &&
+    result.user.photo !== 'default.jpg'
+  ) {
+    await fs.unlink(`${uploadPath}/${result.user.photo}`).catch(() => {});
   }
 
   res.status(200).json({

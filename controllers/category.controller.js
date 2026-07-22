@@ -43,18 +43,20 @@ exports.updateCategory = async (req, res) => {
   if (Object.keys(req.body).length === 0)
     throw new AppError('Please provide us the data you wish to update', 400);
 
-  const data = filterObj(req.body, 'name', 'iamge');
-  if (req.file) data.image = req.file.filename;
+  const data = filterObj(req.body, 'name', 'image');
+
+  const uploadPath = path.join(__dirname, '../public/img/categories');
+
+  if (req.processedImage) {
+    const { filename, buffer } = req.processedImage;
+    await fs.writeFile(`${uploadPath}/${filename}`, buffer);
+    data.image = filename;
+  }
 
   const result = await categoriesSerivce.updateCategory(req.params.id, data);
 
-  if (req.processedImage) {
-    const uploadPath = path.join(__dirname, '../public/img/categories');
-    const { filename, buffer } = req.processedImage;
-    await fs.writeFile(`${uploadPath}/${filename}`, buffer);
-    if (result.category.image) {
-      await fs.unlink(`${uploadPath}/${result.category.image}`).catch(() => {});
-    }
+  if (req.processedImage && result.category.image) {
+    await fs.unlink(`${uploadPath}/${result.category.image}`).catch(() => {});
   }
 
   return res.status(200).json({

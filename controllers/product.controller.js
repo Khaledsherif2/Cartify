@@ -46,36 +46,47 @@ exports.getProduct = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-  const result = await productService.updateProduct(req.params.id, req.body);
-  if (req.processedImages) {
-    const uploadPath = path.join(__dirname, '../public/img/products');
-    if (req.processedImages.imageCover) {
-      const { filename, buffer } = req.processedImages.imageCover;
-      await fs.writeFile(`${uploadPath}/${filename}`, buffer);
+  const uploadPath = path.join(__dirname, '../public/img/products');
 
-      if (result.product.imageCover) {
-        await fs
-          .unlink(`${uploadPath}/${result.product.imageCover}`)
-          .catch(() => {});
-      }
-    }
+  // prettier-ignore
+  const data = filterObj(req.body, 'title', 'description', 'price',
+    'category', 'imageCover', 'images', 'stock',
+  );
 
-    if (req.processedImages.images && req.processedImages.images.length > 0) {
-      await Promise.all(
-        req.processedImages.images.map(async img => {
-          await fs.writeFile(`${uploadPath}/${img.filename}`, img.buffer);
-        }),
-      );
-
-      if (result.product.images && result.product.images.length > 0) {
-        await Promise.all(
-          result.product.images.map(async oldImg => {
-            await fs.unlink(`${uploadPath}/${oldImg}`).catch(() => {});
-          }),
-        );
-      }
-    }
+  if (req.processedImages?.imageCover) {
+    const { filename, buffer } = req.processedImages.imageCover;
+    await fs.writeFile(`${uploadPath}/${filename}`, buffer);
+    data.imageCover = filename;
   }
+
+  if (req.processedImages?.images?.length > 0) {
+    await Promise.all(
+      req.processedImages.images.map(img =>
+        fs.writeFile(`${uploadPath}/${img.filename}`, img.buffer),
+      ),
+    );
+    data.images = req.processedImages.images.map(img => img.filename);
+  }
+
+  const result = await productService.updateProduct(req.params.id, data);
+
+  if (req.processedImages?.imageCover && result.product.imageCover) {
+    await fs
+      .unlink(`${uploadPath}/${result.product.imageCover}`)
+      .catch(() => {});
+  }
+
+  if (
+    req.processedImages?.images?.length > 0 &&
+    result.product.images?.length > 0
+  ) {
+    await Promise.all(
+      result.product.images.map(oldImg =>
+        fs.unlink(`${uploadPath}/${oldImg}`).catch(() => {}),
+      ),
+    );
+  }
+
   res.status(200).json({
     status: 'success',
     data: result.updatedProduct,
