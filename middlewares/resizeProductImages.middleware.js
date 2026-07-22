@@ -5,13 +5,15 @@ exports.resizeProductImages = async (req, res, next) => {
 
   req.processedImages = {};
   if (req.files.imageCover) {
-    const filename = `products-${req.params.id || 'new'}-${Date.now()}-cover.jpeg`;
+    const filename = `products-${req.params.id || 'new'}-${Date.now()}-cover.png`;
     const buffer = await sharp(req.files.imageCover[0].buffer)
-      .resize(1200, 1200, { fit: 'contain', background: '#ffffff' })
-      .toFormat('jpeg')
-      .jpeg({ quality: 80 })
+      .resize(1200, 1200, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .toFormat('png')
+      .png({ quality: 90 })
       .toBuffer();
-    // .toFile(`public/img/products/${req.body.imageCover}`);
     req.processedImages.imageCover = { filename, buffer };
     req.body.imageCover = filename;
   }
@@ -21,13 +23,15 @@ exports.resizeProductImages = async (req, res, next) => {
     req.body.images = [];
     await Promise.all(
       req.files.images.map(async (file, i) => {
-        const filename = `products-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+        const filename = `products-${req.params.id}-${Date.now()}-${i + 1}.png`;
         const buffer = await sharp(file.buffer)
-          .resize(1200, 1200, { fit: 'contain', background: '#ffffff' })
-          .toFormat('jpeg')
-          .jpeg({ quality: 80 })
+          .resize(1200, 1200, {
+            fit: 'contain',
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          })
+          .toFormat('png')
+          .png({ quality: 90 })
           .toBuffer();
-        // .toFile(`public/img/products/${filename}`);
         req.processedImages.images.push({ filename, buffer });
         req.body.images.push(filename);
       }),
