@@ -3,6 +3,7 @@ const path = require('path');
 const productService = require('../services/product.service');
 const AppError = require('../utils/appError');
 const { upload } = require('../utils/uploadImages');
+const { filterObj } = require('../utils/filterObj');
 
 exports.getAllProducts = async (req, res) => {
   const { products, pagination } = await productService.getAllProducts(
